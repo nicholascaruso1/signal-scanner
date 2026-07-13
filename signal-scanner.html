@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Signal Scanner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:      #0D1117;
+    --surface: #161B22;
+    --card:    #1C2333;
+    --border:  #30363D;
+    --dim:     #21262D;
+    --text:    #E6EDF3;
+    --muted:   #7D8590;
+    --faint:   #484F58;
+    --gold:    #F0B429;
+    --green:   #3FB950;
+    --blue:    #58A6FF;
+    --red:     #F85149;
+    --mono:    'JetBrains Mono', monospace;
+    --sans:    'Inter', sans-serif;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    padding: 20px 16px 48px;
+  }
+
+  /* ── Header ── */
+  .header { margin-bottom: 22px; }
+  .header-top { display: flex; align-items: baseline; gap: 10px; margin-bottom: 3px; }
+  .header h1 { font-family: var(--mono); font-size: 20px; font-weight: 700; letter-spacing: -0.5px; }
+  .header-badge {
+    font-family: var(--mono); font-size: 9px; font-weight: 700;
+    color: var(--gold); letter-spacing: 2px; text-transform: uppercase;
+  }
+  .header p { font-size: 11px; color: var(--faint); letter-spacing: 0.2px; }
+
+  /* ── Sport Tabs ── */
+  .sport-tabs {
+    display: flex; gap: 6px; margin-bottom: 16px; overflow-x: auto;
+    padding-bottom: 4px; scrollbar-width: none;
+  }
+  .sport-tabs::-webkit-scrollbar { display: none; }
+  .sport-tab {
+    flex-shrink: 0; padding: 6px 14px; border-radius: 20px;
+    border: 1px solid var(--border); background: transparent;
+    color: var(--faint); font-family: var(--mono); font-size: 11px;
+    font-weight: 700; cursor: pointer; letter-spacing: 0.8px;
+    transition: all 0.15s; white-space: nowrap;
+  }
+  .sport-tab.active {
+    border-color: var(--blue); background: rgba(88,166,255,0.12);
+    color: var(--blue);
+  }
+  .sport-tab:not(.active):hover { border-color: var(--faint); color: var(--muted); }
+
+  /* ── Stats Strip ── */
+  .stats { display: flex; gap: 8px; margin-bottom: 16px; }
+  .stat {
+    flex: 1; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 14px; min-width: 0;
+  }
+  .stat-label { font-size: 8px; color: var(--faint); letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 4px; }
+  .stat-value { font-family: var(--mono); font-size: 20px; font-weight: 700; }
+
+  /* ── Controls ── */
+  .controls { display: flex; gap: 8px; margin-bottom: 14px; align-items: center; flex-wrap: wrap; }
+  .btn-refresh {
+    padding: 7px 16px; border-radius: 7px;
+    border: 1px solid rgba(240,180,41,0.6);
+    background: rgba(240,180,41,0.1); color: var(--gold);
+    font-family: var(--mono); font-size: 11px; font-weight: 700;
+    cursor: pointer; letter-spacing: 0.8px; transition: opacity 0.15s;
+    white-space: nowrap;
+  }
+  .btn-refresh:disabled { opacity: 0.4; cursor: default; }
+  .last-update { font-family: var(--mono); font-size: 9px; color: var(--faint); }
+  .filter-group { display: flex; gap: 5px; align-items: center; margin-left: auto; }
+  .filter-label { font-size: 9px; color: var(--faint); }
+  .filter-btn {
+    padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border);
+    background: transparent; color: var(--faint);
+    font-family: var(--mono); font-size: 10px; font-weight: 700; cursor: pointer;
+    transition: all 0.15s;
+  }
+  .filter-btn.active { border-color: currentColor; background: rgba(255,255,255,0.06); }
+  .filter-btn[data-n="1"].active { color: var(--border); border-color: var(--border); }
+  .filter-btn[data-n="2"].active { color: var(--blue); border-color: var(--blue); background: rgba(88,166,255,0.1); }
+  .filter-btn[data-n="3"].active { color: var(--green); border-color: var(--green); background: rgba(63,185,80,0.1); }
+  .filter-btn[data-n="4"].active { color: var(--gold); border-color: var(--gold); background: rgba(240,180,41,0.1); }
+
+  /* ── Legend ── */
+  .legend {
+    display: flex; gap: 14px; padding: 8px 12px; margin-bottom: 14px;
+    background: var(--surface); border: 1px solid var(--dim);
+    border-radius: 8px; flex-wrap: wrap; align-items: center;
+  }
+  .legend-item { display: flex; align-items: center; gap: 5px; }
+  .legend-dot { width: 7px; height: 7px; border-radius: 2px; flex-shrink: 0; }
+  .legend-item span { font-size: 9px; color: var(--muted); }
+
+  /* ── Error ── */
+  .error-box {
+    padding: 12px 14px; border-radius: 8px; margin-bottom: 14px;
+    background: rgba(248,81,73,0.1); border: 1px solid rgba(248,81,73,0.3);
+    font-family: var(--mono); font-size: 10px; color: var(--red); line-height: 1.6;
+  }
+
+  /* ── Empty State ── */
+  .empty {
+    text-align: center; padding: 56px 20px;
+    font-family: var(--mono); font-size: 12px; color: var(--faint);
+  }
+  .empty-icon { font-size: 28px; margin-bottom: 10px; }
+
+  /* ── Game Cards ── */
+  .cards { display: flex; flex-direction: column; gap: 8px; }
+  .card {
+    background: var(--surface); border-radius: 10px;
+    border: 1px solid var(--border); overflow: hidden;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .card[data-score="3"] { border-color: rgba(63,185,80,0.4); box-shadow: 0 0 20px rgba(63,185,80,0.08); }
+  .card[data-score="4"] { border-color: rgba(240,180,41,0.5); box-shadow: 0 0 24px rgba(240,180,41,0.1); }
+
+  .card-main { padding: 14px 16px; cursor: pointer; user-select: none; }
+
+  .card-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 11px; }
+  .card-meta { font-family: var(--mono); font-size: 8px; color: var(--faint); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 5px; }
+  .card-teams { display: flex; align-items: center; gap: 7px; }
+  .team-name { font-family: var(--mono); font-size: 18px; font-weight: 700; }
+  .team-sep { color: var(--dim); font-size: 12px; }
+
+  .card-right { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+
+  .lean-tag {
+    padding: 4px 10px; border-radius: 6px;
+    font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: 0.6px;
+  }
+
+  /* Signal bars */
+  .bars { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .bars-inner { display: flex; align-items: flex-end; gap: 2px; height: 22px; }
+  .bar { width: 6px; border-radius: 2px; background: var(--dim); transition: background 0.3s; }
+  .bar.on { box-shadow: 0 0 5px currentColor; }
+  .bar:nth-child(1) { height: 7px; }
+  .bar:nth-child(2) { height: 11px; }
+  .bar:nth-child(3) { height: 16px; }
+  .bar:nth-child(4) { height: 22px; }
+  .bars-score { font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: 1px; margin-top: 1px; }
+
+  /* Data strip */
+  .card-data { display: flex; gap: 16px; padding-top: 10px; border-top: 1px solid var(--dim); flex-wrap: wrap; }
+  .data-item { }
+  .data-label { font-size: 8px; color: var(--faint); letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 3px; }
+  .data-value { font-family: var(--mono); font-size: 12px; font-weight: 600; }
+
+  .line-compare { display: flex; gap: 8px; align-items: baseline; }
+  .book-label { font-size: 7px; color: var(--faint); display: block; margin-bottom: 1px; }
+  .val-badge {
+    font-size: 8px; font-weight: 700; padding: 1px 4px; border-radius: 3px;
+    background: rgba(240,180,41,0.12); border: 1px solid rgba(240,180,41,0.35);
+    color: var(--gold); letter-spacing: 0.5px; margin-left: 2px;
+    font-family: var(--mono);
+  }
+  .move-up { color: var(--red); }
+  .move-down { color: var(--green); }
+
+  .pills { margin-left: auto; display: flex; gap: 5px; flex-wrap: wrap; justify-content: flex-end; align-items: flex-start; }
+  .pill {
+    display: flex; align-items: center; gap: 4px;
+    padding: 3px 7px; border-radius: 4px; border: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .pill.on { background: rgba(63,185,80,0.08); border-color: rgba(63,185,80,0.35); }
+  .pill-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--dim); flex-shrink: 0; }
+  .pill.on .pill-dot { background: var(--green); box-shadow: 0 0 4px var(--green); }
+  .pill span { font-family: var(--sans); font-size: 9px; font-weight: 600; letter-spacing: 0.7px; text-transform: uppercase; color: var(--faint); }
+  .pill.on span { color: var(--green); }
+
+  /* Expanded */
+  .card-expand { padding: 12px 16px 14px; border-top: 1px solid var(--dim); background: var(--card); }
+  .expand-section-title { font-size: 8px; color: var(--faint); letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 8px; }
+  .macro-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .btn-macro {
+    padding: 3px 12px; border-radius: 20px; border: 1px solid var(--border);
+    background: transparent; color: var(--faint);
+    font-family: var(--sans); font-size: 9px; font-weight: 700;
+    cursor: pointer; letter-spacing: 0.8px; text-transform: uppercase;
+    transition: all 0.15s;
+  }
+  .btn-macro.on {
+    border-color: rgba(63,185,80,0.6); background: rgba(63,185,80,0.1); color: var(--green);
+  }
+  .macro-hint { font-size: 10px; color: var(--faint); line-height: 1.6; margin-bottom: 10px; }
+  .layer-rows { display: flex; flex-direction: column; gap: 6px; }
+  .layer-row { display: flex; gap: 7px; align-items: flex-start; }
+  .layer-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--dim); margin-top: 2px; flex-shrink: 0; }
+  .layer-dot.on { background: var(--green); box-shadow: 0 0 4px var(--green); }
+  .layer-key { font-family: var(--mono); font-size: 9px; font-weight: 700; color: var(--faint); white-space: nowrap; }
+  .layer-key.on { color: var(--green); }
+  .layer-desc { font-size: 9px; color: var(--muted); margin-left: 4px; }
+
+  /* Spinner */
+  .spinner { display: inline-block; width: 12px; height: 12px; border: 2px solid var(--faint); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.7s linear infinite; margin-right: 6px; vertical-align: middle; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Footer */
+  .footer { margin-top: 32px; padding-top: 14px; border-top: 1px solid var(--dim); font-family: var(--mono); font-size: 8px; color: #30363D; text-align: center; letter-spacing: 0.8px; }
+
+  @media (max-width: 480px) {
+    .stat-value { font-size: 16px; }
+    .card-main { padding: 12px 13px; }
+    .team-name { font-size: 16px; }
+    .lean-tag { font-size: 10px; padding: 3px 8px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <h1>SIGNAL SCANNER</h1>
+    <span class="header-badge">LIVE</span>
+  </div>
+  <p>Macro → Market → Correlated → Value · PIN sharp ref · DK retail line</p>
+</div>
+
+<div class="sport-tabs" id="sportTabs"></div>
+
+<div class="stats">
+  <div class="stat">
+    <div class="stat-label">Games</div>
+    <div class="stat-value" id="statGames">—</div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">High Signal</div>
+    <div class="stat-value" id="statHigh" style="color:var(--gold)">—</div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">API Left</div>
+    <div class="stat-value" id="statApi">—</div>
+  </div>
+</div>
+
+<div class="controls">
+  <button class="btn-refresh" id="btnRefresh" onclick="refresh(true)">▶ LOAD ODDS</button>
+  <span class="last-update" id="lastUpdate"></span>
+  <div class="filter-group">
+    <span class="filter-label">Signal:</span>
+    <button class="filter-btn" data-n="1" onclick="setFilter(1)">1</button>
+    <button class="filter-btn active" data-n="2" onclick="setFilter(2)">2</button>
+    <button class="filter-btn" data-n="3" onclick="setFilter(3)">3</button>
+    <button class="filter-btn" data-n="4" onclick="setFilter(4)">4</button>
+  </div>
+</div>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:var(--gold)"></div><span>4/4 Max conviction</span></div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div><span>3/4 High signal</span></div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--blue)"></div><span>2/4 Developing</span></div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--border)"></div><span>1/4 Watch</span></div>
+  <span style="font-size:9px;color:var(--faint);margin-left:auto">Tap card → assess Macro (L1)</span>
+</div>
+
+<div id="errorBox" class="error-box" style="display:none"></div>
+<div id="cards" class="cards"></div>
+
+<div class="footer" id="footer">
+  PINNACLE = SHARP REFERENCE · DRAFTKINGS = RETAIL LINE · MACRO LAYER IS MANUAL
+</div>
+
+<script>
+// ─── CONFIG ──────────────────────────────────────────────────────────────────
+const API_KEY = "e95f810e37a0140a9a34d5ee986ef8c8";
+const BASE    = "https://api.the-odds-api.com/v4/sports";
+
+const SPORTS = [
+  { key: "baseball_mlb",            label: "MLB",  icon: "⚾" },
+  { key: "americanfootball_nfl",    label: "NFL",  icon: "🏈" },
+  { key: "basketball_nba",          label: "NBA",  icon: "🏀" },
+  { key: "icehockey_nhl",           label: "NHL",  icon: "🏒" },
+  { key: "soccer_usa_mls",          label: "MLS",  icon: "⚽" },
+  { key: "basketball_ncaab",        label: "NCAAB",icon: "🎓" },
+];
+
+const ABBR = {
+  "Arizona Diamondbacks":"ARI","Atlanta Braves":"ATL","Baltimore Orioles":"BAL",
+  "Boston Red Sox":"BOS","Chicago Cubs":"CHC","Chicago White Sox":"CWS",
+  "Cincinnati Reds":"CIN","Cleveland Guardians":"CLE","Colorado Rockies":"COL",
+  "Detroit Tigers":"DET","Houston Astros":"HOU","Kansas City Royals":"KC",
+  "Los Angeles Angels":"LAA","Los Angeles Dodgers":"LAD","Miami Marlins":"MIA",
+  "Milwaukee Brewers":"MIL","Minnesota Twins":"MIN","New York Mets":"NYM",
+  "New York Yankees":"NYY","Oakland Athletics":"OAK","Philadelphia Phillies":"PHI",
+  "Pittsburgh Pirates":"PIT","San Diego Padres":"SD","San Francisco Giants":"SF",
+  "Seattle Mariners":"SEA","St. Louis Cardinals":"STL","Tampa Bay Rays":"TB",
+  "Texas Rangers":"TEX","Toronto Blue Jays":"TOR","Washington Nationals":"WSH",
+  "Athletics":"OAK",
+};
+const abbr = n => ABBR[n] || n.split(" ").slice(-1)[0].slice(0,4).toUpperCase();
+
+// ─── CACHE ───────────────────────────────────────────────────────────────────
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes per sport
+const cache = {}; // sportKey → { games, timestamp, remaining }
+
+function cacheValid(key) {
+  return cache[key] && (Date.now() - cache[key].timestamp < CACHE_TTL);
+}
+function cacheTimeLeft(key) {
+  if (!cache[key]) return 0;
+  return Math.max(0, Math.ceil((CACHE_TTL - (Date.now() - cache[key].timestamp)) / 1000));
+}
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+const state = {
+  sport:    SPORTS[0].key,
+  games:    [],
+  baseline: {},      // id → { pinLean, dkLean } from first fetch
+  minScore: 2,
+  expanded: {},      // id → bool
+  macroOn:  {},      // id → bool
+  loading:  false,
+  remaining: null,
+  lastUpdate: null,
+  forceRefresh: false,
+};
+
+// ─── UTILS ───────────────────────────────────────────────────────────────────
+const toImpl = ml => ml == null ? 0.5 : ml < 0 ? (-ml)/(-ml+100) : 100/(ml+100);
+const fmtML  = v  => v == null ? "—" : v > 0 ? `+${v}` : `${v}`;
+const sigCol  = n  => n === 4 ? "var(--gold)" : n === 3 ? "var(--green)" : n >= 2 ? "var(--blue)" : "var(--border)";
+
+// ─── PARSER ───────────────────────────────────────────────────────────────────
+function parseGame(raw) {
+  const pin = raw.bookmakers?.find(b => b.key === "pinnacle");
+  const dk  = raw.bookmakers?.find(b => b.key === "draftkings");
+  if (!pin && !dk) return null;
+
+  const mkt = (book, key) => book?.markets?.find(m => m.key === key);
+  const out = (market, name) => market?.outcomes?.find(o => o.name === name);
+
+  const home = raw.home_team, away = raw.away_team;
+  const isSoccer = raw.sport_key?.includes("soccer");
+
+  const pinH2H = mkt(pin, "h2h"), dkH2H = mkt(dk, "h2h");
+  const pinSpr  = mkt(pin, "spreads");
+  const pinTot  = mkt(pin, "totals"), dkTot = mkt(dk, "totals");
+
+  const pinHome = out(pinH2H, home)?.price, pinAway = out(pinH2H, away)?.price;
+  const dkHome  = out(dkH2H,  home)?.price, dkAway  = out(dkH2H,  away)?.price;
+
+  const total   = pinTot?.outcomes?.[0]?.point ?? dkTot?.outcomes?.[0]?.point ?? null;
+  const pinSpreadPt    = out(pinSpr, home)?.point;
+  const pinSpreadJuice = out(pinSpr, home)?.price;
+
+  // Lean detection — DK undervaluing relative to Pinnacle = value
+  let leanSide = "home";
+  if (pinHome && pinAway && dkHome && dkAway) {
+    const he = toImpl(pinHome) - toImpl(dkHome); // +ve = DK undervaluing home
+    const ae = toImpl(pinAway) - toImpl(dkAway);
+    if (ae > he && ae > 0.015)       leanSide = "away";
+    else if (he > ae && he > 0.015)  leanSide = "home";
+    else leanSide = toImpl(pinHome) >= toImpl(pinAway) ? "home" : "away";
+  } else {
+    const rH = pinHome ?? dkHome, rA = pinAway ?? dkAway;
+    if (!rH || !rA) return null;
+    leanSide = toImpl(rH) >= toImpl(rA) ? "home" : "away";
+  }
+
+  const leanTeam = leanSide === "home" ? home : away;
+  const pinLean  = leanSide === "home" ? pinHome : pinAway;
+  const dkLean   = leanSide === "home" ? dkHome  : dkAway;
+  const pinOpp   = leanSide === "home" ? pinAway : pinHome;
+  const dkOpp    = leanSide === "home" ? dkAway  : dkHome;
+
+  // Time formatting
+  const d = new Date(raw.commence_time);
+  const timeStr = d.toLocaleTimeString("en-US", { hour:"numeric", minute:"2-digit", timeZone:"America/New_York" }) + " ET";
+  const dateStr = d.toLocaleDateString("en-US", { month:"short", day:"numeric" });
+
+  return {
+    id: raw.id, homeTeam: home, awayTeam: away,
+    homeAbbr: abbr(home), awayAbbr: abbr(away),
+    time: timeStr, date: dateStr,
+    leanSide, leanTeam,
+    pinLean, dkLean, pinOpp, dkOpp,
+    total, pinSpreadPt, pinSpreadJuice,
+    hasPinnacle: !!pin, hasDK: !!dk,
+    isSoccer,
+  };
+}
+
+// ─── SCORER ──────────────────────────────────────────────────────────────────
+function scoreGame(game) {
+  const { leanSide, pinLean, dkLean, total, pinSpreadPt } = game;
+  const macroOn = !!state.macroOn[game.id];
+
+  // L1 — Macro (manual toggle)
+  const L1 = macroOn;
+
+  // L2 — Market: Pinnacle implied > 52% on lean (or >55% if no Pinnacle)
+  const L2 = game.hasPinnacle
+    ? (pinLean ? toImpl(pinLean) > 0.52 : false)
+    : (dkLean  ? toImpl(dkLean)  > 0.55 : false);
+
+  // L3 — Correlated: total + spread game script aligns with lean
+  const isUnderdog = (dkLean ?? pinLean ?? 0) > 0;
+  let L3 = false;
+  if (total != null) {
+    if (isUnderdog && total <= 8.0) L3 = true;
+    if (!isUnderdog && total <= 8.5) L3 = true;
+  }
+  if (!L3 && pinSpreadPt != null) {
+    if (leanSide === "home" && Math.abs(pinSpreadPt) <= 1.5) L3 = true;
+    if (leanSide === "away" && Math.abs(pinSpreadPt) >= 1.5) L3 = true;
+  }
+
+  // L4 — Value: DK offers 8+ cents better than Pinnacle on lean
+  const L4 = (dkLean != null && pinLean != null) ? dkLean > pinLean + 8 : false;
+
+  const layers = { macro: L1, market: L2, correlated: L3, value: L4 };
+  return { layers, score: [L1,L2,L3,L4].filter(Boolean).length };
+}
+
+// ─── MOVEMENT ────────────────────────────────────────────────────────────────
+function getMovement(game) {
+  const base = state.baseline[game.id];
+  if (!base || base.pinLean == null || game.pinLean == null) return null;
+  const diff = game.pinLean - base.pinLean;
+  if (Math.abs(diff) < 2) return null;
+  return diff; // negative = moved toward lean (sharpening), positive = drifted
+}
+
+// ─── FETCH ────────────────────────────────────────────────────────────────────
+async function refresh(force = false) {
+  if (state.loading) return;
+
+  // Serve from cache on tab switch unless forced or cache expired
+  if (!force && cacheValid(state.sport)) {
+    const hit = cache[state.sport];
+    state.games     = hit.games;
+    state.remaining = hit.remaining;
+    state.lastUpdate = hit.timestamp ? new Date(hit.timestamp) : state.lastUpdate;
+    hideError();
+    render();
+    renderCacheBadge();
+    return;
+  }
+
+  state.loading = true;
+  renderControls();
+
+  const url = `${BASE}/${state.sport}/odds/?apiKey=${API_KEY}&bookmakers=pinnacle,draftkings&markets=h2h,spreads,totals&oddsFormat=american`;
+
+  try {
+    const res = await fetch(url);
+    const rem = res.headers.get("x-requests-remaining");
+    if (rem) state.remaining = rem;
+
+    if (!res.ok) {
+      const txt = await res.text();
+      let msg = `API ${res.status}`;
+      try { const j = JSON.parse(txt); msg += `: ${j.message || txt}`; } catch { msg += `: ${txt}`; }
+      throw new Error(msg);
+    }
+
+    const raw = await res.json();
+    if (!Array.isArray(raw)) throw new Error("Unexpected API response format.");
+
+    const parsed = raw.map(parseGame).filter(Boolean);
+
+    // Store baseline on first load per game (movement tracking)
+    parsed.forEach(g => {
+      if (!state.baseline[g.id]) {
+        state.baseline[g.id] = { pinLean: g.pinLean, dkLean: g.dkLean };
+      }
+    });
+
+    state.games = parsed;
+    state.lastUpdate = new Date();
+
+    // Write to cache
+    cache[state.sport] = { games: parsed, remaining: state.remaining, timestamp: Date.now() };
+
+    hideError();
+    render();
+    renderCacheBadge();
+  } catch (e) {
+    showError(e.message);
+  } finally {
+    state.loading = false;
+    renderControls();
+  }
+}
+
+function renderCacheBadge() {
+  const secs = cacheTimeLeft(state.sport);
+  const el = document.getElementById("lastUpdate");
+  if (!state.lastUpdate) return;
+  const t = state.lastUpdate.toLocaleTimeString("en-US", { hour:"numeric", minute:"2-digit" });
+  el.textContent = secs > 0 ? `Updated ${t} · refreshes in ${Math.ceil(secs/60)}m` : `Updated ${t}`;
+}
+
+// ─── RENDER ───────────────────────────────────────────────────────────────────
+function render() {
+  renderStats();
+  renderCards();
+}
+
+function renderStats() {
+  const high = state.games.filter(g => scoreGame(g).score >= 3).length;
+  document.getElementById("statGames").textContent = state.games.length || "—";
+  document.getElementById("statHigh").textContent  = state.games.length ? high : "—";
+  const rem = state.remaining;
+  const remEl = document.getElementById("statApi");
+  remEl.textContent = rem ?? "—";
+  remEl.style.color = rem && parseInt(rem) < 50 ? "var(--red)" : "var(--text)";
+  renderCacheBadge();
+}
+
+function renderControls() {
+  const btn = document.getElementById("btnRefresh");
+  if (state.loading) {
+    btn.innerHTML = '<span class="spinner"></span>LOADING…';
+    btn.disabled = true;
+  } else {
+    btn.innerHTML = state.games.length ? "↺ REFRESH" : "▶ LOAD ODDS";
+    btn.disabled = false;
+  }
+}
+
+function renderCards() {
+  const container = document.getElementById("cards");
+
+  const filtered = state.games
+    .map(g => ({ g, s: scoreGame(g) }))
+    .filter(({ s }) => s.score >= state.minScore)
+    .sort((a, b) => b.s.score - a.s.score);
+
+  if (filtered.length === 0 && state.games.length > 0) {
+    container.innerHTML = `<div class="empty"><div class="empty-icon">◈</div>No games at ${state.minScore}/4 — lower the filter or refresh.</div>`;
+    return;
+  }
+
+  if (state.games.length === 0) {
+    container.innerHTML = `<div class="empty"><div class="empty-icon">◈</div>Hit Load Odds to pull live lines.</div>`;
+    return;
+  }
+
+  container.innerHTML = filtered.map(({ g, s }) => cardHTML(g, s)).join("");
+}
+
+function cardHTML(game, { layers, score }) {
+  const col    = sigCol(score);
+  const exp    = !!state.expanded[game.id];
+  const macro  = !!state.macroOn[game.id];
+  const leanAbbr = game.leanSide === "home" ? game.homeAbbr : game.awayAbbr;
+  const leanML   = game.dkLean ?? game.pinLean;
+  const move     = getMovement(game);
+  const implLean = game.pinLean ? (toImpl(game.pinLean) * 100).toFixed(1) : null;
+
+  // DK vs PIN value
+  const pinDiff = (game.dkLean != null && game.pinLean != null) ? game.dkLean - game.pinLean : null;
+  const hasVal  = pinDiff != null && pinDiff > 8;
+
+  // Movement arrow
+  let moveHTML = "";
+  if (move != null) {
+    const cls   = move < 0 ? "move-down" : "move-up";
+    const arrow = move < 0 ? "▼" : "▲";
+    moveHTML = `<span class="${cls}" style="font-size:9px;margin-left:3px">${arrow}${Math.abs(move)}</span>`;
+  }
+
+  // Signal bars
+  const barKeys = ["macro","market","correlated","value"];
+  const barsHTML = barKeys.map((k,i) => {
+    const on = layers[k];
+    return `<div class="bar${on?" on":""}" style="${on?`background:${col};color:${col}`:""}"></div>`;
+  }).join("");
+
+  // Pills
+  const pillsHTML = [
+    { k:"macro", l:"Macro" }, { k:"market", l:"Market" },
+    { k:"correlated", l:"Confirm" }, { k:"value", l:"Value" }
+  ].map(({k,l}) => `
+    <div class="pill${layers[k]?" on":""}">
+      <div class="pill-dot"></div>
+      <span>${l}</span>
+    </div>`).join("");
+
+  // Layer descriptions
+  const layerDescs = [
+    {
+      k:"market", l:"L2 · Market",
+      d: implLean
+        ? `Pinnacle implied ${implLean}% — ${layers.market?"sharp action confirmed":"below 52% threshold"}`
+        : "No Pinnacle data"
+    },
+    {
+      k:"correlated", l:"L3 · Correlated",
+      d: `Total ${game.total??'N/A'} · Spread ${game.pinSpreadPt!=null?game.homeAbbr+" "+game.pinSpreadPt:"N/A"} — ${layers.correlated?"game script aligns":"no cross-market confirm"}`
+    },
+    {
+      k:"value", l:"L4 · Value",
+      d: (game.dkLean!=null&&game.pinLean!=null)
+        ? `DK ${fmtML(game.dkLean)} vs PIN ${fmtML(game.pinLean)} — ${hasVal?`+${pinDiff}¢ edge`:"< 8¢ threshold"}`
+        : "Insufficient data"
+    }
+  ].map(({k,l,d}) => `
+    <div class="layer-row">
+      <div class="layer-dot${layers[k]?" on":""}"></div>
+      <span class="layer-key${layers[k]?" on":""}">${l}</span>
+      <span class="layer-desc">${d}</span>
+    </div>`).join("");
+
+  return `
+  <div class="card" data-score="${score}" data-id="${game.id}">
+    <div class="card-main" onclick="toggleExpand('${game.id}')">
+      <div class="card-header">
+        <div>
+          <div class="card-meta">${game.date} · ${game.time}${!game.hasPinnacle?' · <span style="color:var(--red)">NO PIN</span>':''}</div>
+          <div class="card-teams">
+            <span class="team-name" style="color:${game.leanSide==='away'?col:'var(--muted)'}">
+              ${game.awayAbbr}
+            </span>
+            <span class="team-sep">@</span>
+            <span class="team-name" style="color:${game.leanSide==='home'?col:'var(--muted)'}">
+              ${game.homeAbbr}
+            </span>
+          </div>
+        </div>
+        <div class="card-right">
+          <div class="lean-tag" style="background:${col}18;border:1px solid ${col}44;color:${col}">
+            ◂ ${leanAbbr} ${fmtML(leanML)}${moveHTML}
+          </div>
+          <div class="bars">
+            <div class="bars-inner">${barsHTML}</div>
+            <div class="bars-score" style="color:${col}">${score}/4</div>
+          </div>
+        </div>
+      </div>
+      <div class="card-data">
+        <!-- Lean ML -->
+        <div class="data-item">
+          <div class="data-label">Lean ML</div>
+          <div class="line-compare">
+            <div>
+              <span class="book-label">PIN</span>
+              <span class="data-value" style="color:var(--muted)">${fmtML(game.pinLean)}</span>
+            </div>
+            <div>
+              <span class="book-label">DK</span>
+              <span class="data-value" style="color:${hasVal?'var(--gold)':'var(--text)'}">${fmtML(game.dkLean)}</span>
+            </div>
+            ${hasVal?`<span class="val-badge">+${pinDiff}¢</span>`:""}
+          </div>
+        </div>
+        <!-- Opp ML -->
+        <div class="data-item">
+          <div class="data-label">Opp ML</div>
+          <div class="line-compare">
+            <div>
+              <span class="book-label">PIN</span>
+              <span class="data-value" style="color:var(--muted)">${fmtML(game.pinOpp)}</span>
+            </div>
+            <div>
+              <span class="book-label">DK</span>
+              <span class="data-value">${fmtML(game.dkOpp)}</span>
+            </div>
+          </div>
+        </div>
+        <!-- Total -->
+        <div class="data-item">
+          <div class="data-label">Total (PIN)</div>
+          <div class="data-value">${game.total??'—'}</div>
+        </div>
+        ${implLean?`
+        <div class="data-item">
+          <div class="data-label">Implied</div>
+          <div class="data-value" style="color:${parseFloat(implLean)>52?'var(--green)':'var(--muted)'}">${implLean}%</div>
+        </div>`:''}
+        <!-- Pills -->
+        <div class="pills">${pillsHTML}</div>
+      </div>
+    </div>
+    ${exp ? `
+    <div class="card-expand">
+      <div class="expand-section-title">L1 · Macro Assessment</div>
+      <div class="macro-row">
+        <button class="btn-macro${macro?" on":""}" onclick="toggleMacro('${game.id}')">
+          ${macro?"✓ Confirmed":"Tap to Confirm"}
+        </button>
+      </div>
+      <div class="macro-hint">Assess manually: rest differential · travel spot · injury impact · schedule context. Confirm only when situational edge aligns with lean.</div>
+      <div class="expand-section-title">Layer Logic</div>
+      <div class="layer-rows">${layerDescs}</div>
+    </div>` : ''}
+  </div>`;
+}
+
+// ─── SPORT TABS ──────────────────────────────────────────────────────────────
+function renderSportTabs() {
+  const el = document.getElementById("sportTabs");
+  el.innerHTML = SPORTS.map(s => `
+    <button class="sport-tab${state.sport===s.key?" active":""}"
+      onclick="setSport('${s.key}')">
+      ${s.icon} ${s.label}
+    </button>`).join("");
+}
+
+function setSport(key) {
+  if (state.sport === key) return;
+  state.sport  = key;
+  state.games  = [];
+  state.expanded = {};
+  renderSportTabs();
+  render();
+  refresh();
+}
+
+// ─── EVENT HANDLERS ──────────────────────────────────────────────────────────
+function toggleExpand(id) {
+  state.expanded[id] = !state.expanded[id];
+  renderCards();
+}
+
+function toggleMacro(id) {
+  state.macroOn[id] = !state.macroOn[id];
+  renderCards();
+  renderStats();
+}
+
+function setFilter(n) {
+  state.minScore = n;
+  document.querySelectorAll(".filter-btn").forEach(b => {
+    b.classList.toggle("active", parseInt(b.dataset.n) === n);
+  });
+  renderCards();
+}
+
+function showError(msg) {
+  const el = document.getElementById("errorBox");
+  el.style.display = "block";
+  el.innerHTML = `✕ ${msg}<br><span style="font-size:9px;opacity:0.7">Check your API key or try again in a moment.</span>`;
+}
+
+function hideError() {
+  document.getElementById("errorBox").style.display = "none";
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+renderSportTabs();
+render();
+refresh(true); // auto-load on open, force fresh data
+</script>
+</body>
+</html>
