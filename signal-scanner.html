@@ -4,224 +4,135 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Signal Scanner</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
   :root {
-    --bg:      #0D1117;
-    --surface: #161B22;
-    --card:    #1C2333;
-    --border:  #30363D;
-    --dim:     #21262D;
-    --text:    #E6EDF3;
-    --muted:   #7D8590;
-    --faint:   #484F58;
-    --gold:    #F0B429;
-    --green:   #3FB950;
-    --blue:    #58A6FF;
-    --red:     #F85149;
-    --mono:    'JetBrains Mono', monospace;
-    --sans:    'Inter', sans-serif;
+    --bg:#0D1117; --surface:#161B22; --card:#1C2333; --border:#30363D; --dim:#21262D;
+    --text:#E6EDF3; --muted:#7D8590; --faint:#484F58;
+    --gold:#F0B429; --green:#3FB950; --blue:#58A6FF; --red:#F85149; --amber:#E3A008;
+    --mono:'JetBrains Mono',monospace; --sans:'Inter',sans-serif;
   }
+  body { background:var(--bg); color:var(--text); font-family:var(--sans); min-height:100vh; padding:20px 16px 48px; }
 
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--sans);
-    min-height: 100vh;
-    padding: 20px 16px 48px;
-  }
+  .header { margin-bottom:20px; }
+  .header-top { display:flex; align-items:baseline; gap:10px; margin-bottom:3px; }
+  .header h1 { font-family:var(--mono); font-size:20px; font-weight:700; letter-spacing:-0.5px; }
+  .badge { font-family:var(--mono); font-size:9px; font-weight:700; color:var(--gold); letter-spacing:2px; }
+  .header p { font-size:11px; color:var(--faint); }
 
-  /* ── Header ── */
-  .header { margin-bottom: 22px; }
-  .header-top { display: flex; align-items: baseline; gap: 10px; margin-bottom: 3px; }
-  .header h1 { font-family: var(--mono); font-size: 20px; font-weight: 700; letter-spacing: -0.5px; }
-  .header-badge {
-    font-family: var(--mono); font-size: 9px; font-weight: 700;
-    color: var(--gold); letter-spacing: 2px; text-transform: uppercase;
-  }
-  .header p { font-size: 11px; color: var(--faint); letter-spacing: 0.2px; }
+  .sport-tabs { display:flex; gap:6px; margin-bottom:16px; overflow-x:auto; padding-bottom:4px; scrollbar-width:none; }
+  .sport-tabs::-webkit-scrollbar { display:none; }
+  .sport-tab { flex-shrink:0; padding:6px 14px; border-radius:20px; border:1px solid var(--border); background:transparent; color:var(--faint); font-family:var(--mono); font-size:11px; font-weight:700; cursor:pointer; letter-spacing:0.8px; transition:all 0.15s; }
+  .sport-tab.active { border-color:var(--blue); background:rgba(88,166,255,0.12); color:var(--blue); }
 
-  /* ── Sport Tabs ── */
-  .sport-tabs {
-    display: flex; gap: 6px; margin-bottom: 16px; overflow-x: auto;
-    padding-bottom: 4px; scrollbar-width: none;
-  }
-  .sport-tabs::-webkit-scrollbar { display: none; }
-  .sport-tab {
-    flex-shrink: 0; padding: 6px 14px; border-radius: 20px;
-    border: 1px solid var(--border); background: transparent;
-    color: var(--faint); font-family: var(--mono); font-size: 11px;
-    font-weight: 700; cursor: pointer; letter-spacing: 0.8px;
-    transition: all 0.15s; white-space: nowrap;
-  }
-  .sport-tab.active {
-    border-color: var(--blue); background: rgba(88,166,255,0.12);
-    color: var(--blue);
-  }
-  .sport-tab:not(.active):hover { border-color: var(--faint); color: var(--muted); }
+  .stats { display:flex; gap:8px; margin-bottom:14px; }
+  .stat { flex:1; background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:10px 14px; min-width:0; }
+  .stat-label { font-size:8px; color:var(--faint); letter-spacing:1.2px; text-transform:uppercase; margin-bottom:4px; }
+  .stat-value { font-family:var(--mono); font-size:20px; font-weight:700; }
 
-  /* ── Stats Strip ── */
-  .stats { display: flex; gap: 8px; margin-bottom: 16px; }
-  .stat {
-    flex: 1; background: var(--surface); border: 1px solid var(--border);
-    border-radius: 8px; padding: 10px 14px; min-width: 0;
-  }
-  .stat-label { font-size: 8px; color: var(--faint); letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 4px; }
-  .stat-value { font-family: var(--mono); font-size: 20px; font-weight: 700; }
+  .controls { display:flex; gap:8px; margin-bottom:14px; align-items:center; flex-wrap:wrap; }
+  .btn-primary { padding:7px 16px; border-radius:7px; border:1px solid rgba(240,180,41,0.6); background:rgba(240,180,41,0.1); color:var(--gold); font-family:var(--mono); font-size:11px; font-weight:700; cursor:pointer; letter-spacing:0.8px; white-space:nowrap; }
+  .btn-primary:disabled { opacity:0.4; cursor:default; }
+  .last-update { font-family:var(--mono); font-size:9px; color:var(--faint); }
+  .filter-group { display:flex; gap:5px; align-items:center; margin-left:auto; }
+  .filter-label { font-size:9px; color:var(--faint); }
+  .filter-btn { padding:4px 10px; border-radius:6px; border:1px solid var(--border); background:transparent; color:var(--faint); font-family:var(--mono); font-size:10px; font-weight:700; cursor:pointer; }
+  .filter-btn[data-n="2"].active { color:var(--blue); border-color:var(--blue); background:rgba(88,166,255,0.1); }
+  .filter-btn[data-n="3"].active { color:var(--green); border-color:var(--green); background:rgba(63,185,80,0.1); }
+  .filter-btn[data-n="4"].active { color:var(--gold); border-color:var(--gold); background:rgba(240,180,41,0.1); }
+  .filter-btn[data-n="1"].active { color:var(--border); border-color:var(--border); }
 
-  /* ── Controls ── */
-  .controls { display: flex; gap: 8px; margin-bottom: 14px; align-items: center; flex-wrap: wrap; }
-  .btn-refresh {
-    padding: 7px 16px; border-radius: 7px;
-    border: 1px solid rgba(240,180,41,0.6);
-    background: rgba(240,180,41,0.1); color: var(--gold);
-    font-family: var(--mono); font-size: 11px; font-weight: 700;
-    cursor: pointer; letter-spacing: 0.8px; transition: opacity 0.15s;
-    white-space: nowrap;
-  }
-  .btn-refresh:disabled { opacity: 0.4; cursor: default; }
-  .last-update { font-family: var(--mono); font-size: 9px; color: var(--faint); }
-  .filter-group { display: flex; gap: 5px; align-items: center; margin-left: auto; }
-  .filter-label { font-size: 9px; color: var(--faint); }
-  .filter-btn {
-    padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border);
-    background: transparent; color: var(--faint);
-    font-family: var(--mono); font-size: 10px; font-weight: 700; cursor: pointer;
-    transition: all 0.15s;
-  }
-  .filter-btn.active { border-color: currentColor; background: rgba(255,255,255,0.06); }
-  .filter-btn[data-n="1"].active { color: var(--border); border-color: var(--border); }
-  .filter-btn[data-n="2"].active { color: var(--blue); border-color: var(--blue); background: rgba(88,166,255,0.1); }
-  .filter-btn[data-n="3"].active { color: var(--green); border-color: var(--green); background: rgba(63,185,80,0.1); }
-  .filter-btn[data-n="4"].active { color: var(--gold); border-color: var(--gold); background: rgba(240,180,41,0.1); }
+  .legend { display:flex; gap:12px; padding:8px 12px; margin-bottom:14px; background:var(--surface); border:1px solid var(--dim); border-radius:8px; flex-wrap:wrap; align-items:center; }
+  .legend-item { display:flex; align-items:center; gap:5px; }
+  .legend-dot { width:7px; height:7px; border-radius:2px; flex-shrink:0; }
+  .legend-item span { font-size:9px; color:var(--muted); }
 
-  /* ── Legend ── */
-  .legend {
-    display: flex; gap: 14px; padding: 8px 12px; margin-bottom: 14px;
-    background: var(--surface); border: 1px solid var(--dim);
-    border-radius: 8px; flex-wrap: wrap; align-items: center;
-  }
-  .legend-item { display: flex; align-items: center; gap: 5px; }
-  .legend-dot { width: 7px; height: 7px; border-radius: 2px; flex-shrink: 0; }
-  .legend-item span { font-size: 9px; color: var(--muted); }
+  .error-box { padding:12px 14px; border-radius:8px; margin-bottom:14px; background:rgba(248,81,73,0.1); border:1px solid rgba(248,81,73,0.3); font-family:var(--mono); font-size:10px; color:var(--red); line-height:1.6; }
+  .empty { text-align:center; padding:56px 20px; font-family:var(--mono); font-size:12px; color:var(--faint); }
+  .empty-icon { font-size:28px; margin-bottom:10px; }
 
-  /* ── Error ── */
-  .error-box {
-    padding: 12px 14px; border-radius: 8px; margin-bottom: 14px;
-    background: rgba(248,81,73,0.1); border: 1px solid rgba(248,81,73,0.3);
-    font-family: var(--mono); font-size: 10px; color: var(--red); line-height: 1.6;
-  }
-
-  /* ── Empty State ── */
-  .empty {
-    text-align: center; padding: 56px 20px;
-    font-family: var(--mono); font-size: 12px; color: var(--faint);
-  }
-  .empty-icon { font-size: 28px; margin-bottom: 10px; }
-
-  /* ── Game Cards ── */
-  .cards { display: flex; flex-direction: column; gap: 8px; }
-  .card {
-    background: var(--surface); border-radius: 10px;
-    border: 1px solid var(--border); overflow: hidden;
-    transition: border-color 0.2s, box-shadow 0.2s;
-  }
-  .card[data-score="3"] { border-color: rgba(63,185,80,0.4); box-shadow: 0 0 20px rgba(63,185,80,0.08); }
-  .card[data-score="4"] { border-color: rgba(240,180,41,0.5); box-shadow: 0 0 24px rgba(240,180,41,0.1); }
-
-  .card-main { padding: 14px 16px; cursor: pointer; user-select: none; }
-
-  .card-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 11px; }
-  .card-meta { font-family: var(--mono); font-size: 8px; color: var(--faint); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 5px; }
-  .card-teams { display: flex; align-items: center; gap: 7px; }
-  .team-name { font-family: var(--mono); font-size: 18px; font-weight: 700; }
-  .team-sep { color: var(--dim); font-size: 12px; }
-
-  .card-right { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
-
-  .lean-tag {
-    padding: 4px 10px; border-radius: 6px;
-    font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: 0.6px;
-  }
+  /* Cards */
+  .cards { display:flex; flex-direction:column; gap:8px; }
+  .card { background:var(--surface); border-radius:10px; border:1px solid var(--border); overflow:hidden; transition:border-color 0.2s,box-shadow 0.2s; }
+  .card[data-score="3"] { border-color:rgba(63,185,80,0.4); box-shadow:0 0 20px rgba(63,185,80,0.08); }
+  .card[data-score="4"] { border-color:rgba(240,180,41,0.5); box-shadow:0 0 24px rgba(240,180,41,0.1); }
+  .card-main { padding:14px 16px; cursor:pointer; user-select:none; }
+  .card-header { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:11px; }
+  .card-meta { font-family:var(--mono); font-size:8px; color:var(--faint); letter-spacing:1.5px; text-transform:uppercase; margin-bottom:5px; }
+  .card-teams { display:flex; align-items:center; gap:7px; }
+  .team-name { font-family:var(--mono); font-size:18px; font-weight:700; }
+  .team-sep { color:var(--dim); font-size:12px; }
+  .card-right { display:flex; align-items:center; gap:12px; flex-shrink:0; }
+  .lean-tag { padding:4px 10px; border-radius:6px; font-family:var(--mono); font-size:11px; font-weight:700; letter-spacing:0.6px; }
 
   /* Signal bars */
-  .bars { display: flex; flex-direction: column; align-items: center; gap: 2px; }
-  .bars-inner { display: flex; align-items: flex-end; gap: 2px; height: 22px; }
-  .bar { width: 6px; border-radius: 2px; background: var(--dim); transition: background 0.3s; }
-  .bar.on { box-shadow: 0 0 5px currentColor; }
-  .bar:nth-child(1) { height: 7px; }
-  .bar:nth-child(2) { height: 11px; }
-  .bar:nth-child(3) { height: 16px; }
-  .bar:nth-child(4) { height: 22px; }
-  .bars-score { font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: 1px; margin-top: 1px; }
+  .bars { display:flex; flex-direction:column; align-items:center; gap:2px; }
+  .bars-inner { display:flex; align-items:flex-end; gap:2px; height:22px; }
+  .bar { width:6px; border-radius:2px; background:var(--dim); }
+  .bar:nth-child(1){height:7px} .bar:nth-child(2){height:11px} .bar:nth-child(3){height:16px} .bar:nth-child(4){height:22px}
+  .bars-score { font-family:var(--mono); font-size:10px; font-weight:700; letter-spacing:1px; margin-top:1px; }
 
   /* Data strip */
-  .card-data { display: flex; gap: 16px; padding-top: 10px; border-top: 1px solid var(--dim); flex-wrap: wrap; }
-  .data-item { }
-  .data-label { font-size: 8px; color: var(--faint); letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 3px; }
-  .data-value { font-family: var(--mono); font-size: 12px; font-weight: 600; }
+  .card-data { display:flex; gap:14px; padding-top:10px; border-top:1px solid var(--dim); flex-wrap:wrap; align-items:flex-start; }
+  .data-label { font-size:8px; color:var(--faint); letter-spacing:1.2px; text-transform:uppercase; margin-bottom:3px; }
+  .data-value { font-family:var(--mono); font-size:12px; font-weight:600; }
+  .line-compare { display:flex; gap:8px; align-items:baseline; }
+  .book-label { font-size:7px; color:var(--faint); display:block; margin-bottom:1px; }
+  .val-badge { font-size:8px; font-weight:700; padding:1px 4px; border-radius:3px; background:rgba(240,180,41,0.12); border:1px solid rgba(240,180,41,0.35); color:var(--gold); letter-spacing:0.5px; font-family:var(--mono); }
 
-  .line-compare { display: flex; gap: 8px; align-items: baseline; }
-  .book-label { font-size: 7px; color: var(--faint); display: block; margin-bottom: 1px; }
-  .val-badge {
-    font-size: 8px; font-weight: 700; padding: 1px 4px; border-radius: 3px;
-    background: rgba(240,180,41,0.12); border: 1px solid rgba(240,180,41,0.35);
-    color: var(--gold); letter-spacing: 0.5px; margin-left: 2px;
-    font-family: var(--mono);
-  }
-  .move-up { color: var(--red); }
-  .move-down { color: var(--green); }
+  /* Macro chip */
+  .macro-chip { display:inline-flex; align-items:center; gap:4px; padding:2px 7px; border-radius:4px; font-size:8px; font-weight:700; font-family:var(--mono); letter-spacing:0.8px; text-transform:uppercase; }
+  .macro-chip.auto-on  { background:rgba(63,185,80,0.12); border:1px solid rgba(63,185,80,0.4); color:var(--green); }
+  .macro-chip.auto-off { background:rgba(248,81,73,0.08); border:1px solid rgba(248,81,73,0.3); color:var(--red); }
+  .macro-chip.loading  { background:rgba(72,79,88,0.3); border:1px solid var(--dim); color:var(--faint); }
+  .macro-chip.manual   { background:rgba(240,180,41,0.08); border:1px solid rgba(240,180,41,0.3); color:var(--amber); }
 
-  .pills { margin-left: auto; display: flex; gap: 5px; flex-wrap: wrap; justify-content: flex-end; align-items: flex-start; }
-  .pill {
-    display: flex; align-items: center; gap: 4px;
-    padding: 3px 7px; border-radius: 4px; border: 1px solid var(--border);
-    background: var(--surface);
-  }
-  .pill.on { background: rgba(63,185,80,0.08); border-color: rgba(63,185,80,0.35); }
-  .pill-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--dim); flex-shrink: 0; }
-  .pill.on .pill-dot { background: var(--green); box-shadow: 0 0 4px var(--green); }
-  .pill span { font-family: var(--sans); font-size: 9px; font-weight: 600; letter-spacing: 0.7px; text-transform: uppercase; color: var(--faint); }
-  .pill.on span { color: var(--green); }
+  .pills { margin-left:auto; display:flex; gap:5px; flex-wrap:wrap; justify-content:flex-end; align-items:flex-start; }
+  .pill { display:flex; align-items:center; gap:4px; padding:3px 7px; border-radius:4px; border:1px solid var(--border); background:var(--surface); }
+  .pill.on { background:rgba(63,185,80,0.08); border-color:rgba(63,185,80,0.35); }
+  .pill-dot { width:5px; height:5px; border-radius:50%; background:var(--dim); flex-shrink:0; }
+  .pill.on .pill-dot { background:var(--green); box-shadow:0 0 4px var(--green); }
+  .pill span { font-family:var(--sans); font-size:9px; font-weight:600; letter-spacing:0.7px; text-transform:uppercase; color:var(--faint); }
+  .pill.on span { color:var(--green); }
 
   /* Expanded */
-  .card-expand { padding: 12px 16px 14px; border-top: 1px solid var(--dim); background: var(--card); }
-  .expand-section-title { font-size: 8px; color: var(--faint); letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 8px; }
-  .macro-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-  .btn-macro {
-    padding: 3px 12px; border-radius: 20px; border: 1px solid var(--border);
-    background: transparent; color: var(--faint);
-    font-family: var(--sans); font-size: 9px; font-weight: 700;
-    cursor: pointer; letter-spacing: 0.8px; text-transform: uppercase;
-    transition: all 0.15s;
-  }
-  .btn-macro.on {
-    border-color: rgba(63,185,80,0.6); background: rgba(63,185,80,0.1); color: var(--green);
-  }
-  .macro-hint { font-size: 10px; color: var(--faint); line-height: 1.6; margin-bottom: 10px; }
-  .layer-rows { display: flex; flex-direction: column; gap: 6px; }
-  .layer-row { display: flex; gap: 7px; align-items: flex-start; }
-  .layer-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--dim); margin-top: 2px; flex-shrink: 0; }
-  .layer-dot.on { background: var(--green); box-shadow: 0 0 4px var(--green); }
-  .layer-key { font-family: var(--mono); font-size: 9px; font-weight: 700; color: var(--faint); white-space: nowrap; }
-  .layer-key.on { color: var(--green); }
-  .layer-desc { font-size: 9px; color: var(--muted); margin-left: 4px; }
+  .card-expand { padding:12px 16px 14px; border-top:1px solid var(--dim); background:var(--card); }
+  .expand-title { font-size:8px; color:var(--faint); letter-spacing:1.2px; text-transform:uppercase; margin-bottom:8px; }
 
-  /* Spinner */
-  .spinner { display: inline-block; width: 12px; height: 12px; border: 2px solid var(--faint); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.7s linear infinite; margin-right: 6px; vertical-align: middle; }
-  @keyframes spin { to { transform: rotate(360deg); } }
+  /* Macro detail */
+  .macro-detail { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px; }
+  .macro-stat { background:var(--surface); border:1px solid var(--dim); border-radius:6px; padding:6px 10px; }
+  .macro-stat-label { font-size:7px; color:var(--faint); letter-spacing:1px; text-transform:uppercase; margin-bottom:3px; }
+  .macro-stat-value { font-family:var(--mono); font-size:11px; font-weight:700; }
 
-  /* Footer */
-  .footer { margin-top: 32px; padding-top: 14px; border-top: 1px solid var(--dim); font-family: var(--mono); font-size: 8px; color: #30363D; text-align: center; letter-spacing: 0.8px; }
+  /* Injury toggle */
+  .injury-row { display:flex; align-items:center; gap:10px; margin-bottom:10px; padding:8px 10px; background:var(--surface); border:1px solid var(--dim); border-radius:6px; }
+  .injury-label { font-size:10px; color:var(--muted); flex:1; }
+  .btn-injury { padding:3px 10px; border-radius:20px; border:1px solid var(--border); background:transparent; color:var(--faint); font-family:var(--sans); font-size:9px; font-weight:700; cursor:pointer; letter-spacing:0.8px; text-transform:uppercase; }
+  .btn-injury.flagged { border-color:rgba(248,81,73,0.6); background:rgba(248,81,73,0.1); color:var(--red); }
 
-  @media (max-width: 480px) {
-    .stat-value { font-size: 16px; }
-    .card-main { padding: 12px 13px; }
-    .team-name { font-size: 16px; }
-    .lean-tag { font-size: 10px; padding: 3px 8px; }
+  /* Manual macro (non-MLB) */
+  .btn-macro { padding:3px 12px; border-radius:20px; border:1px solid var(--border); background:transparent; color:var(--faint); font-family:var(--sans); font-size:9px; font-weight:700; cursor:pointer; letter-spacing:0.8px; text-transform:uppercase; }
+  .btn-macro.on { border-color:rgba(63,185,80,0.6); background:rgba(63,185,80,0.1); color:var(--green); }
+
+  /* Layer rows */
+  .layer-rows { display:flex; flex-direction:column; gap:6px; }
+  .layer-row { display:flex; gap:7px; align-items:flex-start; }
+  .layer-dot { width:6px; height:6px; border-radius:50%; background:var(--dim); margin-top:2px; flex-shrink:0; }
+  .layer-dot.on { background:var(--green); box-shadow:0 0 4px var(--green); }
+  .layer-key { font-family:var(--mono); font-size:9px; font-weight:700; color:var(--faint); white-space:nowrap; }
+  .layer-key.on { color:var(--green); }
+  .layer-desc { font-size:9px; color:var(--muted); margin-left:4px; line-height:1.5; }
+
+  .spinner { display:inline-block; width:10px; height:10px; border:2px solid var(--faint); border-top-color:var(--gold); border-radius:50%; animation:spin 0.7s linear infinite; margin-right:5px; vertical-align:middle; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+
+  .footer { margin-top:32px; padding-top:14px; border-top:1px solid var(--dim); font-family:var(--mono); font-size:8px; color:#30363D; text-align:center; letter-spacing:0.8px; }
+
+  @media (max-width:480px) {
+    .stat-value{font-size:16px} .card-main{padding:12px 13px}
+    .team-name{font-size:16px} .lean-tag{font-size:10px;padding:3px 8px}
   }
 </style>
 </head>
@@ -230,7 +141,7 @@
 <div class="header">
   <div class="header-top">
     <h1>SIGNAL SCANNER</h1>
-    <span class="header-badge">LIVE</span>
+    <span class="badge">LIVE</span>
   </div>
   <p>Macro → Market → Correlated → Value · PIN sharp ref · DK retail line</p>
 </div>
@@ -238,22 +149,13 @@
 <div class="sport-tabs" id="sportTabs"></div>
 
 <div class="stats">
-  <div class="stat">
-    <div class="stat-label">Games</div>
-    <div class="stat-value" id="statGames">—</div>
-  </div>
-  <div class="stat">
-    <div class="stat-label">High Signal</div>
-    <div class="stat-value" id="statHigh" style="color:var(--gold)">—</div>
-  </div>
-  <div class="stat">
-    <div class="stat-label">API Left</div>
-    <div class="stat-value" id="statApi">—</div>
-  </div>
+  <div class="stat"><div class="stat-label">Games</div><div class="stat-value" id="statGames">—</div></div>
+  <div class="stat"><div class="stat-label">High Signal</div><div class="stat-value" id="statHigh" style="color:var(--gold)">—</div></div>
+  <div class="stat"><div class="stat-label">API Left</div><div class="stat-value" id="statApi">—</div></div>
 </div>
 
 <div class="controls">
-  <button class="btn-refresh" id="btnRefresh" onclick="refresh(true)">▶ LOAD ODDS</button>
+  <button class="btn-primary" id="btnRefresh" onclick="refresh(true)">▶ LOAD ODDS</button>
   <span class="last-update" id="lastUpdate"></span>
   <div class="filter-group">
     <span class="filter-label">Signal:</span>
@@ -269,28 +171,25 @@
   <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div><span>3/4 High signal</span></div>
   <div class="legend-item"><div class="legend-dot" style="background:var(--blue)"></div><span>2/4 Developing</span></div>
   <div class="legend-item"><div class="legend-dot" style="background:var(--border)"></div><span>1/4 Watch</span></div>
-  <span style="font-size:9px;color:var(--faint);margin-left:auto">Tap card → assess Macro (L1)</span>
+  <span style="font-size:9px;color:var(--faint);margin-left:auto">MLB macro is auto-scored</span>
 </div>
 
 <div id="errorBox" class="error-box" style="display:none"></div>
 <div id="cards" class="cards"></div>
-
-<div class="footer" id="footer">
-  PINNACLE = SHARP REFERENCE · DRAFTKINGS = RETAIL LINE · MACRO LAYER IS MANUAL
-</div>
+<div class="footer" id="footer">PINNACLE = SHARP REF · DK = RETAIL LINE · MLB MACRO AUTO-SCORED VIA MLB STATS API</div>
 
 <script>
 // ─── CONFIG ──────────────────────────────────────────────────────────────────
 const API_KEY = "e95f810e37a0140a9a34d5ee986ef8c8";
 const BASE    = "https://api.the-odds-api.com/v4/sports";
+const MLB_API = "https://statsapi.mlb.com/api/v1";
 
 const SPORTS = [
-  { key: "baseball_mlb",            label: "MLB",  icon: "⚾" },
-  { key: "americanfootball_nfl",    label: "NFL",  icon: "🏈" },
-  { key: "basketball_nba",          label: "NBA",  icon: "🏀" },
-  { key: "icehockey_nhl",           label: "NHL",  icon: "🏒" },
-  { key: "soccer_usa_mls",          label: "MLS",  icon: "⚽" },
-  { key: "basketball_ncaab",        label: "NCAAB",icon: "🎓" },
+  { key:"baseball_mlb",         label:"MLB",   icon:"⚾" },
+  { key:"americanfootball_nfl", label:"NFL",   icon:"🏈" },
+  { key:"basketball_nba",       label:"NBA",   icon:"🏀" },
+  { key:"icehockey_nhl",        label:"NHL",   icon:"🏒" },
+  { key:"soccer_usa_mls",       label:"MLS",   icon:"⚽" },
 ];
 
 const ABBR = {
@@ -308,314 +207,415 @@ const ABBR = {
 };
 const abbr = n => ABBR[n] || n.split(" ").slice(-1)[0].slice(0,4).toUpperCase();
 
-// ─── CACHE ───────────────────────────────────────────────────────────────────
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes per sport
-const cache = {}; // sportKey → { games, timestamp, remaining }
-
-function cacheValid(key) {
-  return cache[key] && (Date.now() - cache[key].timestamp < CACHE_TTL);
-}
-function cacheTimeLeft(key) {
-  if (!cache[key]) return 0;
-  return Math.max(0, Math.ceil((CACHE_TTL - (Date.now() - cache[key].timestamp)) / 1000));
-}
-
-// ─── STATE ────────────────────────────────────────────────────────────────────
-const state = {
-  sport:    SPORTS[0].key,
-  games:    [],
-  baseline: {},      // id → { pinLean, dkLean } from first fetch
-  minScore: 2,
-  expanded: {},      // id → bool
-  macroOn:  {},      // id → bool
-  loading:  false,
-  remaining: null,
-  lastUpdate: null,
-  forceRefresh: false,
+// MLB team IDs for Stats API
+const MLB_IDS = {
+  "Arizona Diamondbacks":109,"Atlanta Braves":144,"Baltimore Orioles":110,
+  "Boston Red Sox":111,"Chicago Cubs":112,"Chicago White Sox":145,
+  "Cincinnati Reds":113,"Cleveland Guardians":114,"Colorado Rockies":115,
+  "Detroit Tigers":116,"Houston Astros":117,"Kansas City Royals":118,
+  "Los Angeles Angels":108,"Los Angeles Dodgers":119,"Miami Marlins":146,
+  "Milwaukee Brewers":158,"Minnesota Twins":142,"New York Mets":121,
+  "New York Yankees":147,"Oakland Athletics":133,"Philadelphia Phillies":143,
+  "Pittsburgh Pirates":134,"San Diego Padres":135,"San Francisco Giants":137,
+  "Seattle Mariners":136,"St. Louis Cardinals":138,"Tampa Bay Rays":139,
+  "Texas Rangers":140,"Toronto Blue Jays":141,"Washington Nationals":120,
+  "Athletics":133,
 };
 
 // ─── UTILS ───────────────────────────────────────────────────────────────────
-const toImpl = ml => ml == null ? 0.5 : ml < 0 ? (-ml)/(-ml+100) : 100/(ml+100);
-const fmtML  = v  => v == null ? "—" : v > 0 ? `+${v}` : `${v}`;
-const sigCol  = n  => n === 4 ? "var(--gold)" : n === 3 ? "var(--green)" : n >= 2 ? "var(--blue)" : "var(--border)";
+const toImpl = ml => ml==null ? 0.5 : ml<0 ? (-ml)/(-ml+100) : 100/(ml+100);
+const fmtML  = v  => v==null ? "—" : v>0 ? `+${v}` : `${v}`;
+const sigCol  = n  => n===4?"var(--gold)":n===3?"var(--green)":n>=2?"var(--blue)":"var(--border)";
 
-// ─── PARSER ───────────────────────────────────────────────────────────────────
+// ─── CACHE ───────────────────────────────────────────────────────────────────
+const CACHE_TTL   = 5 * 60 * 1000;
+const oddsCache   = {};  // sport → { games, timestamp, remaining }
+const macroCache  = {};  // teamName → { restDays, roadTripGame, b2b, lastDate }
+
+function oddsValid(key) { return oddsCache[key] && (Date.now()-oddsCache[key].timestamp < CACHE_TTL); }
+function cacheLeft(key) { return oddsCache[key] ? Math.max(0, Math.ceil((CACHE_TTL-(Date.now()-oddsCache[key].timestamp))/60000)) : 0; }
+
+// ─── STATE ───────────────────────────────────────────────────────────────────
+const S = {
+  sport:    SPORTS[0].key,
+  games:    [],
+  baseline: {},
+  minScore: 2,
+  expanded: {},
+  injuryFlag: {},   // id → bool (manual injury override negates macro)
+  macroOn:  {},     // id → bool (manual macro for non-MLB)
+  macroLoading: false,
+  loading:  false,
+  remaining: null,
+  lastUpdate: null,
+};
+
+// ─── MLB MACRO FETCH ─────────────────────────────────────────────────────────
+async function fetchTeamMacro(teamName) {
+  if (macroCache[teamName] !== undefined) return macroCache[teamName];
+
+  const teamId = MLB_IDS[teamName];
+  if (!teamId) { macroCache[teamName] = null; return null; }
+
+  const today    = new Date();
+  const endDate  = today.toISOString().split('T')[0];
+  const start    = new Date(today - 10*86400000);
+  const startDate= start.toISOString().split('T')[0];
+
+  try {
+    const url = `${MLB_API}/schedule?sportId=1&teamId=${teamId}&startDate=${startDate}&endDate=${endDate}&gameType=R`;
+    const res  = await fetch(url);
+    const data = await res.json();
+
+    const games = [];
+    for (const d of (data.dates||[])) {
+      for (const g of (d.games||[])) {
+        if (g.status?.abstractGameState === "Final") {
+          const isHome = g.teams?.home?.team?.id === teamId;
+          games.push({ date: d.date, isHome });
+        }
+      }
+    }
+    games.sort((a,b) => new Date(b.date)-new Date(a.date));
+
+    if (!games.length) { macroCache[teamName] = null; return null; }
+
+    const last     = games[0];
+    const lastDate = new Date(last.date + "T12:00:00");
+    const todayD   = new Date(today.toDateString());
+    const restDays = Math.round((todayD - lastDate)/86400000);
+    const b2b      = restDays === 0;
+
+    // Road trip: consecutive away games
+    let roadTripGame = 0;
+    if (!last.isHome) {
+      for (const g of games) { if (!g.isHome) roadTripGame++; else break; }
+    }
+
+    const result = { restDays, roadTripGame, b2b, lastDate: last.date, lastGameHome: last.isHome };
+    macroCache[teamName] = result;
+    return result;
+  } catch(e) {
+    macroCache[teamName] = null;
+    return null;
+  }
+}
+
+async function enrichMacro(games) {
+  if (S.sport !== "baseball_mlb") return;
+  S.macroLoading = true;
+  renderCards();
+
+  const teams = [...new Set(games.flatMap(g=>[g.homeTeam, g.awayTeam]))];
+  await Promise.all(teams.map(fetchTeamMacro));
+
+  S.macroLoading = false;
+  renderCards();
+  renderStats();
+}
+
+// Auto-score macro for MLB using fetched data
+function autoMacro(game) {
+  if (S.sport !== "baseball_mlb") return null; // null = use manual
+  const hd = macroCache[game.homeTeam];
+  const ad = macroCache[game.awayTeam];
+  if (hd === undefined || ad === undefined) return null; // still loading
+  if (!hd || !ad) return false; // data unavailable
+
+  const leanD = game.leanSide==="home" ? hd : ad;
+  const oppD  = game.leanSide==="home" ? ad : hd;
+
+  let signals = 0;
+  if (leanD.restDays > oppD.restDays)           signals++; // lean has more rest
+  if (oppD.b2b && !leanD.b2b)                   signals++; // opp on B2B
+  if (oppD.roadTripGame >= 3 && game.leanSide==="home") signals++; // opp deep road trip, lean at home
+  if (!oppD.lastGameHome && game.leanSide==="home")     signals += 0.5; // lean is home, opp traveling
+
+  return signals >= 1;
+}
+
+// ─── PARSER ──────────────────────────────────────────────────────────────────
 function parseGame(raw) {
-  const pin = raw.bookmakers?.find(b => b.key === "pinnacle");
-  const dk  = raw.bookmakers?.find(b => b.key === "draftkings");
+  const pin = raw.bookmakers?.find(b=>b.key==="pinnacle");
+  const dk  = raw.bookmakers?.find(b=>b.key==="draftkings");
   if (!pin && !dk) return null;
 
-  const mkt = (book, key) => book?.markets?.find(m => m.key === key);
-  const out = (market, name) => market?.outcomes?.find(o => o.name === name);
+  const mkt = (book,key) => book?.markets?.find(m=>m.key===key);
+  const out = (market,name) => market?.outcomes?.find(o=>o.name===name);
 
-  const home = raw.home_team, away = raw.away_team;
-  const isSoccer = raw.sport_key?.includes("soccer");
+  const home=raw.home_team, away=raw.away_team;
+  const pinH2H=mkt(pin,"h2h"), dkH2H=mkt(dk,"h2h");
+  const pinSpr=mkt(pin,"spreads"), pinTot=mkt(pin,"totals"), dkTot=mkt(dk,"totals");
 
-  const pinH2H = mkt(pin, "h2h"), dkH2H = mkt(dk, "h2h");
-  const pinSpr  = mkt(pin, "spreads");
-  const pinTot  = mkt(pin, "totals"), dkTot = mkt(dk, "totals");
+  const pinHome=out(pinH2H,home)?.price, pinAway=out(pinH2H,away)?.price;
+  const dkHome =out(dkH2H, home)?.price, dkAway =out(dkH2H, away)?.price;
+  const total  =pinTot?.outcomes?.[0]?.point ?? dkTot?.outcomes?.[0]?.point ?? null;
+  const pinSpreadPt   =out(pinSpr,home)?.point;
+  const pinSpreadJuice=out(pinSpr,home)?.price;
 
-  const pinHome = out(pinH2H, home)?.price, pinAway = out(pinH2H, away)?.price;
-  const dkHome  = out(dkH2H,  home)?.price, dkAway  = out(dkH2H,  away)?.price;
-
-  const total   = pinTot?.outcomes?.[0]?.point ?? dkTot?.outcomes?.[0]?.point ?? null;
-  const pinSpreadPt    = out(pinSpr, home)?.point;
-  const pinSpreadJuice = out(pinSpr, home)?.price;
-
-  // Lean detection — DK undervaluing relative to Pinnacle = value
-  let leanSide = "home";
-  if (pinHome && pinAway && dkHome && dkAway) {
-    const he = toImpl(pinHome) - toImpl(dkHome); // +ve = DK undervaluing home
-    const ae = toImpl(pinAway) - toImpl(dkAway);
-    if (ae > he && ae > 0.015)       leanSide = "away";
-    else if (he > ae && he > 0.015)  leanSide = "home";
-    else leanSide = toImpl(pinHome) >= toImpl(pinAway) ? "home" : "away";
+  let leanSide="home";
+  if (pinHome&&pinAway&&dkHome&&dkAway) {
+    const he=toImpl(pinHome)-toImpl(dkHome), ae=toImpl(pinAway)-toImpl(dkAway);
+    if (ae>he&&ae>0.015) leanSide="away";
+    else if (he>ae&&he>0.015) leanSide="home";
+    else leanSide=toImpl(pinHome)>=toImpl(pinAway)?"home":"away";
   } else {
-    const rH = pinHome ?? dkHome, rA = pinAway ?? dkAway;
-    if (!rH || !rA) return null;
-    leanSide = toImpl(rH) >= toImpl(rA) ? "home" : "away";
+    const rH=pinHome??dkHome, rA=pinAway??dkAway;
+    if (!rH||!rA) return null;
+    leanSide=toImpl(rH)>=toImpl(rA)?"home":"away";
   }
 
-  const leanTeam = leanSide === "home" ? home : away;
-  const pinLean  = leanSide === "home" ? pinHome : pinAway;
-  const dkLean   = leanSide === "home" ? dkHome  : dkAway;
-  const pinOpp   = leanSide === "home" ? pinAway : pinHome;
-  const dkOpp    = leanSide === "home" ? dkAway  : dkHome;
+  const leanTeam=leanSide==="home"?home:away;
+  const pinLean =leanSide==="home"?pinHome:pinAway;
+  const dkLean  =leanSide==="home"?dkHome:dkAway;
+  const pinOpp  =leanSide==="home"?pinAway:pinHome;
+  const dkOpp   =leanSide==="home"?dkAway:dkHome;
 
-  // Time formatting
-  const d = new Date(raw.commence_time);
-  const timeStr = d.toLocaleTimeString("en-US", { hour:"numeric", minute:"2-digit", timeZone:"America/New_York" }) + " ET";
-  const dateStr = d.toLocaleDateString("en-US", { month:"short", day:"numeric" });
-
+  const d=new Date(raw.commence_time);
   return {
-    id: raw.id, homeTeam: home, awayTeam: away,
-    homeAbbr: abbr(home), awayAbbr: abbr(away),
-    time: timeStr, date: dateStr,
-    leanSide, leanTeam,
-    pinLean, dkLean, pinOpp, dkOpp,
+    id:raw.id, homeTeam:home, awayTeam:away,
+    homeAbbr:abbr(home), awayAbbr:abbr(away),
+    time:d.toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit",timeZone:"America/New_York"})+" ET",
+    date:d.toLocaleDateString("en-US",{month:"short",day:"numeric"}),
+    leanSide, leanTeam, pinLean, dkLean, pinOpp, dkOpp,
     total, pinSpreadPt, pinSpreadJuice,
-    hasPinnacle: !!pin, hasDK: !!dk,
-    isSoccer,
+    hasPinnacle:!!pin, hasDK:!!dk,
   };
 }
 
 // ─── SCORER ──────────────────────────────────────────────────────────────────
 function scoreGame(game) {
-  const { leanSide, pinLean, dkLean, total, pinSpreadPt } = game;
-  const macroOn = !!state.macroOn[game.id];
+  const {leanSide,pinLean,dkLean,total,pinSpreadPt} = game;
 
-  // L1 — Macro (manual toggle)
-  const L1 = macroOn;
+  // L1 — Macro
+  const am = autoMacro(game);
+  const L1 = am !== null
+    ? (am && !S.injuryFlag[game.id])   // auto result, negated by injury flag
+    : !!S.macroOn[game.id];            // manual for non-MLB
 
-  // L2 — Market: Pinnacle implied > 52% on lean (or >55% if no Pinnacle)
+  // L2 — Market: Pinnacle implied > 52%
   const L2 = game.hasPinnacle
-    ? (pinLean ? toImpl(pinLean) > 0.52 : false)
-    : (dkLean  ? toImpl(dkLean)  > 0.55 : false);
+    ? (pinLean ? toImpl(pinLean)>0.52 : false)
+    : (dkLean  ? toImpl(dkLean) >0.55 : false);
 
-  // L3 — Correlated: total + spread game script aligns with lean
-  const isUnderdog = (dkLean ?? pinLean ?? 0) > 0;
-  let L3 = false;
-  if (total != null) {
-    if (isUnderdog && total <= 8.0) L3 = true;
-    if (!isUnderdog && total <= 8.5) L3 = true;
-  }
-  if (!L3 && pinSpreadPt != null) {
-    if (leanSide === "home" && Math.abs(pinSpreadPt) <= 1.5) L3 = true;
-    if (leanSide === "away" && Math.abs(pinSpreadPt) >= 1.5) L3 = true;
+  // L3 — Correlated: total + spread game script
+  const isUnd=(dkLean??pinLean??0)>0;
+  let L3=false;
+  if (total!=null) { if (isUnd&&total<=8.0) L3=true; if (!isUnd&&total<=8.5) L3=true; }
+  if (!L3&&pinSpreadPt!=null) {
+    if (leanSide==="home"&&Math.abs(pinSpreadPt)<=1.5) L3=true;
+    if (leanSide==="away"&&Math.abs(pinSpreadPt)>=1.5) L3=true;
   }
 
-  // L4 — Value: DK offers 8+ cents better than Pinnacle on lean
-  const L4 = (dkLean != null && pinLean != null) ? dkLean > pinLean + 8 : false;
+  // L4 — Value: DK 8+ cents better than Pinnacle
+  const L4=(dkLean!=null&&pinLean!=null)?dkLean>pinLean+8:false;
 
-  const layers = { macro: L1, market: L2, correlated: L3, value: L4 };
-  return { layers, score: [L1,L2,L3,L4].filter(Boolean).length };
+  const layers={macro:L1,market:L2,correlated:L3,value:L4};
+  return {layers,score:[L1,L2,L3,L4].filter(Boolean).length};
 }
 
 // ─── MOVEMENT ────────────────────────────────────────────────────────────────
-function getMovement(game) {
-  const base = state.baseline[game.id];
-  if (!base || base.pinLean == null || game.pinLean == null) return null;
-  const diff = game.pinLean - base.pinLean;
-  if (Math.abs(diff) < 2) return null;
-  return diff; // negative = moved toward lean (sharpening), positive = drifted
+function getMove(game) {
+  const base=S.baseline[game.id];
+  if (!base||base.pinLean==null||game.pinLean==null) return null;
+  const d=game.pinLean-base.pinLean;
+  return Math.abs(d)<2?null:d;
 }
 
 // ─── FETCH ────────────────────────────────────────────────────────────────────
-async function refresh(force = false) {
-  if (state.loading) return;
-
-  // Serve from cache on tab switch unless forced or cache expired
-  if (!force && cacheValid(state.sport)) {
-    const hit = cache[state.sport];
-    state.games     = hit.games;
-    state.remaining = hit.remaining;
-    state.lastUpdate = hit.timestamp ? new Date(hit.timestamp) : state.lastUpdate;
-    hideError();
-    render();
-    renderCacheBadge();
-    return;
+async function refresh(force=false) {
+  if (S.loading) return;
+  if (!force && oddsValid(S.sport)) {
+    const hit=oddsCache[S.sport];
+    S.games=hit.games; S.remaining=hit.remaining;
+    S.lastUpdate=new Date(hit.timestamp);
+    hideError(); render(); renderCacheBadge(); return;
   }
 
-  state.loading = true;
-  renderControls();
-
-  const url = `${BASE}/${state.sport}/odds/?apiKey=${API_KEY}&bookmakers=pinnacle,draftkings&markets=h2h,spreads,totals&oddsFormat=american`;
+  S.loading=true; renderControls();
+  const url=`${BASE}/${S.sport}/odds/?apiKey=${API_KEY}&bookmakers=pinnacle,draftkings&markets=h2h,spreads,totals&oddsFormat=american`;
 
   try {
-    const res = await fetch(url);
-    const rem = res.headers.get("x-requests-remaining");
-    if (rem) state.remaining = rem;
+    const res=await fetch(url);
+    const rem=res.headers.get("x-requests-remaining");
+    if (rem) S.remaining=rem;
+    if (!res.ok) { const t=await res.text(); throw new Error(`API ${res.status}: ${t}`); }
+    const raw=await res.json();
+    if (!Array.isArray(raw)) throw new Error("Unexpected response format.");
 
-    if (!res.ok) {
-      const txt = await res.text();
-      let msg = `API ${res.status}`;
-      try { const j = JSON.parse(txt); msg += `: ${j.message || txt}`; } catch { msg += `: ${txt}`; }
-      throw new Error(msg);
-    }
+    const parsed=raw.map(parseGame).filter(Boolean);
+    parsed.forEach(g=>{ if (!S.baseline[g.id]) S.baseline[g.id]={pinLean:g.pinLean,dkLean:g.dkLean}; });
 
-    const raw = await res.json();
-    if (!Array.isArray(raw)) throw new Error("Unexpected API response format.");
+    S.games=parsed; S.lastUpdate=new Date();
+    oddsCache[S.sport]={games:parsed,remaining:S.remaining,timestamp:Date.now()};
 
-    const parsed = raw.map(parseGame).filter(Boolean);
+    hideError(); render(); renderCacheBadge();
 
-    // Store baseline on first load per game (movement tracking)
-    parsed.forEach(g => {
-      if (!state.baseline[g.id]) {
-        state.baseline[g.id] = { pinLean: g.pinLean, dkLean: g.dkLean };
-      }
-    });
+    // Async macro enrichment for MLB
+    enrichMacro(parsed);
 
-    state.games = parsed;
-    state.lastUpdate = new Date();
+  } catch(e) { showError(e.message); }
+  finally { S.loading=false; renderControls(); }
+}
 
-    // Write to cache
-    cache[state.sport] = { games: parsed, remaining: state.remaining, timestamp: Date.now() };
+// ─── RENDER ──────────────────────────────────────────────────────────────────
+function render() { renderStats(); renderCards(); }
 
-    hideError();
-    render();
-    renderCacheBadge();
-  } catch (e) {
-    showError(e.message);
-  } finally {
-    state.loading = false;
-    renderControls();
-  }
+function renderStats() {
+  const high=S.games.filter(g=>scoreGame(g).score>=3).length;
+  document.getElementById("statGames").textContent=S.games.length||"—";
+  document.getElementById("statHigh").textContent =S.games.length?high:"—";
+  const remEl=document.getElementById("statApi");
+  remEl.textContent=S.remaining??"—";
+  remEl.style.color=S.remaining&&parseInt(S.remaining)<50?"var(--red)":"var(--text)";
 }
 
 function renderCacheBadge() {
-  const secs = cacheTimeLeft(state.sport);
-  const el = document.getElementById("lastUpdate");
-  if (!state.lastUpdate) return;
-  const t = state.lastUpdate.toLocaleTimeString("en-US", { hour:"numeric", minute:"2-digit" });
-  el.textContent = secs > 0 ? `Updated ${t} · refreshes in ${Math.ceil(secs/60)}m` : `Updated ${t}`;
-}
-
-// ─── RENDER ───────────────────────────────────────────────────────────────────
-function render() {
-  renderStats();
-  renderCards();
-}
-
-function renderStats() {
-  const high = state.games.filter(g => scoreGame(g).score >= 3).length;
-  document.getElementById("statGames").textContent = state.games.length || "—";
-  document.getElementById("statHigh").textContent  = state.games.length ? high : "—";
-  const rem = state.remaining;
-  const remEl = document.getElementById("statApi");
-  remEl.textContent = rem ?? "—";
-  remEl.style.color = rem && parseInt(rem) < 50 ? "var(--red)" : "var(--text)";
-  renderCacheBadge();
+  const el=document.getElementById("lastUpdate");
+  if (!S.lastUpdate) return;
+  const t=S.lastUpdate.toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"});
+  const left=cacheLeft(S.sport);
+  el.textContent=left>0?`Updated ${t} · refreshes in ${left}m`:`Updated ${t}`;
 }
 
 function renderControls() {
-  const btn = document.getElementById("btnRefresh");
-  if (state.loading) {
-    btn.innerHTML = '<span class="spinner"></span>LOADING…';
-    btn.disabled = true;
-  } else {
-    btn.innerHTML = state.games.length ? "↺ REFRESH" : "▶ LOAD ODDS";
-    btn.disabled = false;
-  }
+  const btn=document.getElementById("btnRefresh");
+  btn.innerHTML=S.loading?'<span class="spinner"></span>LOADING…':S.games.length?"↺ REFRESH":"▶ LOAD ODDS";
+  btn.disabled=S.loading;
 }
 
 function renderCards() {
-  const container = document.getElementById("cards");
+  const container=document.getElementById("cards");
+  const filtered=S.games
+    .map(g=>({g,s:scoreGame(g)}))
+    .filter(({s})=>s.score>=S.minScore)
+    .sort((a,b)=>b.s.score-a.s.score);
 
-  const filtered = state.games
-    .map(g => ({ g, s: scoreGame(g) }))
-    .filter(({ s }) => s.score >= state.minScore)
-    .sort((a, b) => b.s.score - a.s.score);
-
-  if (filtered.length === 0 && state.games.length > 0) {
-    container.innerHTML = `<div class="empty"><div class="empty-icon">◈</div>No games at ${state.minScore}/4 — lower the filter or refresh.</div>`;
+  if (!S.games.length) {
+    container.innerHTML=`<div class="empty"><div class="empty-icon">◈</div>Hit Load Odds to pull live lines.</div>`;
     return;
   }
-
-  if (state.games.length === 0) {
-    container.innerHTML = `<div class="empty"><div class="empty-icon">◈</div>Hit Load Odds to pull live lines.</div>`;
+  if (!filtered.length) {
+    container.innerHTML=`<div class="empty"><div class="empty-icon">◈</div>No games at ${S.minScore}/4 — lower filter or refresh.</div>`;
     return;
   }
-
-  container.innerHTML = filtered.map(({ g, s }) => cardHTML(g, s)).join("");
+  container.innerHTML=filtered.map(({g,s})=>cardHTML(g,s)).join("");
 }
 
-function cardHTML(game, { layers, score }) {
-  const col    = sigCol(score);
-  const exp    = !!state.expanded[game.id];
-  const macro  = !!state.macroOn[game.id];
-  const leanAbbr = game.leanSide === "home" ? game.homeAbbr : game.awayAbbr;
-  const leanML   = game.dkLean ?? game.pinLean;
-  const move     = getMovement(game);
-  const implLean = game.pinLean ? (toImpl(game.pinLean) * 100).toFixed(1) : null;
+// ─── CARD HTML ───────────────────────────────────────────────────────────────
+function macroChipHTML(game) {
+  const isMLB = S.sport==="baseball_mlb";
+  if (!isMLB) {
+    const on=!!S.macroOn[game.id];
+    return `<span class="macro-chip manual">MANUAL</span>`;
+  }
+  const am=autoMacro(game);
+  if (am===null) return `<span class="macro-chip loading"><span class="spinner"></span>MACRO…</span>`;
+  const injured=!!S.injuryFlag[game.id];
+  if (injured) return `<span class="macro-chip auto-off">⚠ INJURY OVERRIDE</span>`;
+  return am
+    ? `<span class="macro-chip auto-on">✓ MACRO AUTO</span>`
+    : `<span class="macro-chip auto-off">✗ MACRO WEAK</span>`;
+}
 
-  // DK vs PIN value
-  const pinDiff = (game.dkLean != null && game.pinLean != null) ? game.dkLean - game.pinLean : null;
-  const hasVal  = pinDiff != null && pinDiff > 8;
-
-  // Movement arrow
-  let moveHTML = "";
-  if (move != null) {
-    const cls   = move < 0 ? "move-down" : "move-up";
-    const arrow = move < 0 ? "▼" : "▲";
-    moveHTML = `<span class="${cls}" style="font-size:9px;margin-left:3px">${arrow}${Math.abs(move)}</span>`;
+function macroDetailHTML(game) {
+  const isMLB=S.sport==="baseball_mlb";
+  if (!isMLB) {
+    const on=!!S.macroOn[game.id];
+    return `
+      <div class="expand-title">L1 · Macro (Manual — non-MLB)</div>
+      <div style="margin-bottom:10px">
+        <button class="btn-macro${on?" on":""}" onclick="toggleMacro('${game.id}')">
+          ${on?"✓ Confirmed":"Tap to Confirm"}
+        </button>
+        <div style="font-size:10px;color:var(--faint);margin-top:6px;line-height:1.6">
+          Rest differential · travel spot · injury impact · schedule context.
+        </div>
+      </div>`;
   }
 
-  // Signal bars
-  const barKeys = ["macro","market","correlated","value"];
-  const barsHTML = barKeys.map((k,i) => {
-    const on = layers[k];
-    return `<div class="bar${on?" on":""}" style="${on?`background:${col};color:${col}`:""}"></div>`;
-  }).join("");
+  const hd=macroCache[game.homeTeam], ad=macroCache[game.awayTeam];
+  const leanD=game.leanSide==="home"?hd:ad;
+  const oppD =game.leanSide==="home"?ad:hd;
+  const injured=!!S.injuryFlag[game.id];
 
-  // Pills
-  const pillsHTML = [
-    { k:"macro", l:"Macro" }, { k:"market", l:"Market" },
-    { k:"correlated", l:"Confirm" }, { k:"value", l:"Value" }
-  ].map(({k,l}) => `
+  if (!hd||!ad) return `
+    <div class="expand-title">L1 · Macro (Auto — MLB Stats API)</div>
+    <div style="font-size:10px;color:var(--faint);margin-bottom:10px">
+      ${hd===undefined||ad===undefined?"Loading schedule data…":"Could not retrieve schedule data."}
+    </div>`;
+
+  const restDiff=(leanD?.restDays??0)-(oppD?.restDays??0);
+  const leanAbbr=game.leanSide==="home"?game.homeAbbr:game.awayAbbr;
+  const oppAbbr =game.leanSide==="home"?game.awayAbbr:game.homeAbbr;
+
+  return `
+    <div class="expand-title">L1 · Macro (Auto — MLB Stats API)</div>
+    <div class="macro-detail">
+      <div class="macro-stat">
+        <div class="macro-stat-label">${leanAbbr} Rest</div>
+        <div class="macro-stat-value" style="color:${(leanD?.restDays??0)>0?"var(--green)":"var(--red)"}">
+          ${leanD?.b2b?"B2B":`${leanD?.restDays??'?'}d`}
+        </div>
+      </div>
+      <div class="macro-stat">
+        <div class="macro-stat-label">${oppAbbr} Rest</div>
+        <div class="macro-stat-value" style="color:${(oppD?.restDays??0)>0?"var(--muted)":"var(--red)"}">
+          ${oppD?.b2b?"B2B":`${oppD?.restDays??'?'}d`}
+        </div>
+      </div>
+      <div class="macro-stat">
+        <div class="macro-stat-label">Rest Edge</div>
+        <div class="macro-stat-value" style="color:${restDiff>0?"var(--green)":restDiff<0?"var(--red)":"var(--muted)"}">
+          ${restDiff>0?`+${restDiff}d lean`:restDiff<0?`${restDiff}d lean`:"Even"}
+        </div>
+      </div>
+      ${(oppD?.roadTripGame??0)>0?`
+      <div class="macro-stat">
+        <div class="macro-stat-label">${oppAbbr} Road Trip</div>
+        <div class="macro-stat-value" style="color:${oppD.roadTripGame>=3?"var(--red)":"var(--amber)"}">
+          G${oppD.roadTripGame} away
+        </div>
+      </div>`:""}
+    </div>
+    <div class="injury-row">
+      <span class="injury-label">⚠ Key injury on lean team (${leanAbbr})?</span>
+      <button class="btn-injury${injured?" flagged":""}" onclick="toggleInjury('${game.id}')">
+        ${injured?"Flagged — negates macro":"Flag Injury"}
+      </button>
+    </div>`;
+}
+
+function cardHTML(game, {layers,score}) {
+  const col=sigCol(score);
+  const exp=!!S.expanded[game.id];
+  const leanAbbr=game.leanSide==="home"?game.homeAbbr:game.awayAbbr;
+  const leanML=game.dkLean??game.pinLean;
+  const move=getMove(game);
+  const implLean=game.pinLean?(toImpl(game.pinLean)*100).toFixed(1):null;
+  const pinDiff=(game.dkLean!=null&&game.pinLean!=null)?game.dkLean-game.pinLean:null;
+  const hasVal=pinDiff!=null&&pinDiff>8;
+
+  const moveHTML=move!=null
+    ? `<span style="font-size:9px;margin-left:3px;color:${move<0?"var(--green)":"var(--red)"}">${move<0?"▼":"▲"}${Math.abs(move)}</span>`
+    : "";
+
+  const barsHTML=["macro","market","correlated","value"].map(k=>`
+    <div class="bar" style="${layers[k]?`background:${col};box-shadow:0 0 5px ${col}`:""}"></div>`).join("");
+
+  const pillsHTML=[
+    {k:"macro",l:"Macro"},{k:"market",l:"Market"},
+    {k:"correlated",l:"Confirm"},{k:"value",l:"Value"}
+  ].map(({k,l})=>`
     <div class="pill${layers[k]?" on":""}">
-      <div class="pill-dot"></div>
-      <span>${l}</span>
+      <div class="pill-dot"></div><span>${l}</span>
     </div>`).join("");
 
-  // Layer descriptions
-  const layerDescs = [
-    {
-      k:"market", l:"L2 · Market",
-      d: implLean
-        ? `Pinnacle implied ${implLean}% — ${layers.market?"sharp action confirmed":"below 52% threshold"}`
-        : "No Pinnacle data"
-    },
-    {
-      k:"correlated", l:"L3 · Correlated",
-      d: `Total ${game.total??'N/A'} · Spread ${game.pinSpreadPt!=null?game.homeAbbr+" "+game.pinSpreadPt:"N/A"} — ${layers.correlated?"game script aligns":"no cross-market confirm"}`
-    },
-    {
-      k:"value", l:"L4 · Value",
-      d: (game.dkLean!=null&&game.pinLean!=null)
-        ? `DK ${fmtML(game.dkLean)} vs PIN ${fmtML(game.pinLean)} — ${hasVal?`+${pinDiff}¢ edge`:"< 8¢ threshold"}`
-        : "Insufficient data"
-    }
-  ].map(({k,l,d}) => `
+  const layerDescs=[
+    {k:"market",l:"L2 · Market",d:implLean?`Pinnacle implied ${implLean}% — ${layers.market?"sharp action confirmed":"below 52%"}`:"No Pinnacle data"},
+    {k:"correlated",l:"L3 · Correlated",d:`Total ${game.total??"N/A"} · ${layers.correlated?"game script aligns":"no cross-market confirm"}`},
+    {k:"value",l:"L4 · Value",d:(game.dkLean!=null&&game.pinLean!=null)?`DK ${fmtML(game.dkLean)} vs PIN ${fmtML(game.pinLean)} — ${hasVal?`+${pinDiff}¢ edge`:"< 8¢"}`:"Insufficient data"}
+  ].map(({k,l,d})=>`
     <div class="layer-row">
       <div class="layer-dot${layers[k]?" on":""}"></div>
       <span class="layer-key${layers[k]?" on":""}">${l}</span>
@@ -639,8 +639,11 @@ function cardHTML(game, { layers, score }) {
           </div>
         </div>
         <div class="card-right">
-          <div class="lean-tag" style="background:${col}18;border:1px solid ${col}44;color:${col}">
-            ◂ ${leanAbbr} ${fmtML(leanML)}${moveHTML}
+          <div>
+            <div class="lean-tag" style="background:${col}18;border:1px solid ${col}44;color:${col}">
+              ◂ ${leanAbbr} ${fmtML(leanML)}${moveHTML}
+            </div>
+            <div style="margin-top:4px;text-align:right">${macroChipHTML(game)}</div>
           </div>
           <div class="bars">
             <div class="bars-inner">${barsHTML}</div>
@@ -649,118 +652,79 @@ function cardHTML(game, { layers, score }) {
         </div>
       </div>
       <div class="card-data">
-        <!-- Lean ML -->
-        <div class="data-item">
+        <div>
           <div class="data-label">Lean ML</div>
           <div class="line-compare">
-            <div>
-              <span class="book-label">PIN</span>
-              <span class="data-value" style="color:var(--muted)">${fmtML(game.pinLean)}</span>
-            </div>
-            <div>
-              <span class="book-label">DK</span>
-              <span class="data-value" style="color:${hasVal?'var(--gold)':'var(--text)'}">${fmtML(game.dkLean)}</span>
-            </div>
+            <div><span class="book-label">PIN</span><span class="data-value" style="color:var(--muted)">${fmtML(game.pinLean)}</span></div>
+            <div><span class="book-label">DK</span><span class="data-value" style="color:${hasVal?"var(--gold)":"var(--text)"}">${fmtML(game.dkLean)}</span></div>
             ${hasVal?`<span class="val-badge">+${pinDiff}¢</span>`:""}
           </div>
         </div>
-        <!-- Opp ML -->
-        <div class="data-item">
+        <div>
           <div class="data-label">Opp ML</div>
           <div class="line-compare">
-            <div>
-              <span class="book-label">PIN</span>
-              <span class="data-value" style="color:var(--muted)">${fmtML(game.pinOpp)}</span>
-            </div>
-            <div>
-              <span class="book-label">DK</span>
-              <span class="data-value">${fmtML(game.dkOpp)}</span>
-            </div>
+            <div><span class="book-label">PIN</span><span class="data-value" style="color:var(--muted)">${fmtML(game.pinOpp)}</span></div>
+            <div><span class="book-label">DK</span><span class="data-value">${fmtML(game.dkOpp)}</span></div>
           </div>
         </div>
-        <!-- Total -->
-        <div class="data-item">
+        <div>
           <div class="data-label">Total (PIN)</div>
-          <div class="data-value">${game.total??'—'}</div>
+          <div class="data-value">${game.total??"—"}</div>
         </div>
-        ${implLean?`
-        <div class="data-item">
-          <div class="data-label">Implied</div>
-          <div class="data-value" style="color:${parseFloat(implLean)>52?'var(--green)':'var(--muted)'}">${implLean}%</div>
-        </div>`:''}
-        <!-- Pills -->
+        ${implLean?`<div><div class="data-label">Implied</div><div class="data-value" style="color:${parseFloat(implLean)>52?"var(--green)":"var(--muted)"}">${implLean}%</div></div>`:""}
         <div class="pills">${pillsHTML}</div>
       </div>
     </div>
-    ${exp ? `
+    ${exp?`
     <div class="card-expand">
-      <div class="expand-section-title">L1 · Macro Assessment</div>
-      <div class="macro-row">
-        <button class="btn-macro${macro?" on":""}" onclick="toggleMacro('${game.id}')">
-          ${macro?"✓ Confirmed":"Tap to Confirm"}
-        </button>
+      ${macroDetailHTML(game)}
+      <div class="expand-title" style="margin-top:12px;padding-top:12px;border-top:1px solid var(--dim)">Layer Logic</div>
+      <div class="layer-rows">
+        <div class="layer-row">
+          <div class="layer-dot${layers.macro?" on":""}"></div>
+          <span class="layer-key${layers.macro?" on":""}">L1 · Macro</span>
+          <span class="layer-desc">${S.sport==="baseball_mlb"?"Auto-scored from MLB Stats API — rest, B2B, road trip":"Manual assessment required"}</span>
+        </div>
+        ${layerDescs}
       </div>
-      <div class="macro-hint">Assess manually: rest differential · travel spot · injury impact · schedule context. Confirm only when situational edge aligns with lean.</div>
-      <div class="expand-section-title">Layer Logic</div>
-      <div class="layer-rows">${layerDescs}</div>
-    </div>` : ''}
+    </div>`:""}
   </div>`;
 }
 
 // ─── SPORT TABS ──────────────────────────────────────────────────────────────
 function renderSportTabs() {
-  const el = document.getElementById("sportTabs");
-  el.innerHTML = SPORTS.map(s => `
-    <button class="sport-tab${state.sport===s.key?" active":""}"
-      onclick="setSport('${s.key}')">
+  document.getElementById("sportTabs").innerHTML=SPORTS.map(s=>`
+    <button class="sport-tab${S.sport===s.key?" active":""}" onclick="setSport('${s.key}')">
       ${s.icon} ${s.label}
     </button>`).join("");
 }
 
 function setSport(key) {
-  if (state.sport === key) return;
-  state.sport  = key;
-  state.games  = [];
-  state.expanded = {};
-  renderSportTabs();
-  render();
-  refresh();
+  if (S.sport===key) return;
+  S.sport=key; S.games=[]; S.expanded={};
+  renderSportTabs(); render(); refresh();
 }
 
-// ─── EVENT HANDLERS ──────────────────────────────────────────────────────────
-function toggleExpand(id) {
-  state.expanded[id] = !state.expanded[id];
+// ─── EVENTS ──────────────────────────────────────────────────────────────────
+function toggleExpand(id)  { S.expanded[id]=!S.expanded[id]; renderCards(); }
+function toggleMacro(id)   { S.macroOn[id]=!S.macroOn[id];  renderCards(); renderStats(); }
+function toggleInjury(id)  { S.injuryFlag[id]=!S.injuryFlag[id]; renderCards(); renderStats(); }
+function setFilter(n)      {
+  S.minScore=n;
+  document.querySelectorAll(".filter-btn").forEach(b=>b.classList.toggle("active",parseInt(b.dataset.n)===n));
   renderCards();
 }
-
-function toggleMacro(id) {
-  state.macroOn[id] = !state.macroOn[id];
-  renderCards();
-  renderStats();
-}
-
-function setFilter(n) {
-  state.minScore = n;
-  document.querySelectorAll(".filter-btn").forEach(b => {
-    b.classList.toggle("active", parseInt(b.dataset.n) === n);
-  });
-  renderCards();
-}
-
 function showError(msg) {
-  const el = document.getElementById("errorBox");
-  el.style.display = "block";
-  el.innerHTML = `✕ ${msg}<br><span style="font-size:9px;opacity:0.7">Check your API key or try again in a moment.</span>`;
+  const el=document.getElementById("errorBox");
+  el.style.display="block";
+  el.innerHTML=`✕ ${msg}<br><span style="font-size:9px;opacity:0.7">Check API key or try again shortly.</span>`;
 }
+function hideError() { document.getElementById("errorBox").style.display="none"; }
 
-function hideError() {
-  document.getElementById("errorBox").style.display = "none";
-}
-
-// ─── INIT ─────────────────────────────────────────────────────────────────────
+// ─── INIT ────────────────────────────────────────────────────────────────────
 renderSportTabs();
 render();
-refresh(true); // auto-load on open, force fresh data
+refresh(true);
 </script>
 </body>
 </html>
