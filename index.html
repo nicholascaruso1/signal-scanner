@@ -325,13 +325,22 @@ function autoMacro(game) {
   const leanD = game.leanSide==="home" ? hd : ad;
   const oppD  = game.leanSide==="home" ? ad : hd;
 
-  let signals = 0;
-  if (leanD.restDays > oppD.restDays)           signals++; // lean has more rest
-  if (oppD.b2b && !leanD.b2b)                   signals++; // opp on B2B
-  if (oppD.roadTripGame >= 3 && game.leanSide==="home") signals++; // opp deep road trip, lean at home
-  if (!oppD.lastGameHome && game.leanSide==="home")     signals += 0.5; // lean is home, opp traveling
+  // Negative signals — lean team at a situational DISADVANTAGE
+  let negatives = 0;
+  if (leanD.restDays < oppD.restDays)                          negatives++;
+  if (leanD.b2b && !oppD.b2b)                                negatives++;
+  if (leanD.roadTripGame >= 3 && game.leanSide==="away")     negatives++;
 
-  return signals >= 1;
+  // Positive signals — lean team has a situational EDGE
+  let positives = 0;
+  if (leanD.restDays > oppD.restDays)                          positives++;
+  if (oppD.b2b && !leanD.b2b)                                positives++;
+  if (oppD.roadTripGame >= 3 && game.leanSide==="home")      positives++;
+
+  // Even rest = neutral = macro passes (no veto, no bonus)
+  // Only fails when lean team is at clear disadvantage with no offsetting edge
+  if (negatives > 0 && positives === 0) return false;
+  return true;
 }
 
 // ─── PARSER ──────────────────────────────────────────────────────────────────
